@@ -17,12 +17,12 @@ export const handle: Handle = sequence(
 	SvelteKitAuth({
 		providers: [
 			Auth0({
-				issuer: 'https://licensebat.eu.auth0.com/',
-				clientId: 'ZT12emV6G5eJreOhAAGYi5wKG9vsHgdD',
-				clientSecret: '6ho3JTGyKSOHY1eCOh23Zctq_bc--anyvDNIO4w0vo8t7x11WSahkS4JiHpkuj9E'
+				issuer: import.meta.env.VITE_AUTH0_ISSUER,
+				clientId: import.meta.env.VITE_AUTH0_CLIENT_ID,
+				clientSecret: import.meta.env.VITE_AUTH0_CLIENT_SECRET
 			})
 		],
-		secret: '5b88e584cc0f417ed311dc1389a80db3a1598fde0599804fa9e67548e042f080',
+		secret: import.meta.env.VITE_AUTH_SECRET,
 		trustHost: true
 	}),
 	authorization
