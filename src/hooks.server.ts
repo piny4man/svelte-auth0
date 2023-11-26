@@ -1,29 +1,32 @@
 import { SvelteKitAuth } from '@auth/sveltekit';
+
 import Auth0 from '@auth/core/providers/auth0';
-import { redirect, type Handle } from '@sveltejs/kit';
-import { sequence } from '@sveltejs/kit/hooks';
+import type { Handle } from '@sveltejs/kit';
+import { getAppToken } from '$lib/server/auth';
 
-const authorization: Handle = async ({ event, resolve }) => {
-	if (event.url.pathname.startsWith('/authenticated')) {
-		const session = await event.locals.getSession;
-		if (!session) {
-			throw redirect(303, '/');
-		}
+let token: string | null = null;
+
+export const handle: Handle = async ({ event, resolve }) => {
+	if (token) {
+		event.locals.token = token;
 	}
-	return resolve(event);
-};
-
-export const handle: Handle = sequence(
-	SvelteKitAuth({
+	return SvelteKitAuth({
 		providers: [
 			Auth0({
 				issuer: import.meta.env.VITE_AUTH0_ISSUER,
 				clientId: import.meta.env.VITE_AUTH0_CLIENT_ID,
-				clientSecret: import.meta.env.VITE_AUTH0_CLIENT_SECRET
+				clientSecret: import.meta.env.VITE_AUTH0_CLIENT_SECRET,
+				jwks_endpoint: `${import.meta.env.VITE_AUTH0_ISSUER}.well-known/jwks.json}`
 			})
 		],
 		secret: import.meta.env.VITE_AUTH_SECRET,
-		trustHost: true
-	}),
-	authorization
-);
+		trustHost: true,
+		useSecureCookies: true,
+		events: {
+			async signIn() {
+				token = await getAppToken();
+				console.log('token', token);
+			}
+		}
+	})({ event, resolve });
+};
